@@ -1,6 +1,7 @@
 from sklearn import datasets
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import numpy as np
 
 
@@ -19,6 +20,13 @@ def main():
 
     tabela(attributes, min_max)
 
+    # Cria boxplot
+    fig, ax = plt.subplots()
+    ax.set_title("       ".join(attributes), fontsize=8)
+    ax.boxplot(X)
+
+    plt.show()
+
     # Gerar Agrupador
     kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
 
@@ -28,11 +36,26 @@ def main():
     # Obter centroides
     centroids = kmeans.cluster_centers_
 
-    # Criar Grafico sepal length X sepal width
-    for i in range(len(X)):
-        plt.plot(X[i][0], X[i][1], cor_forma(y[i], groups[i]))
 
-    plt.show()
+    #Graficos dos Agrupamentos
+    
+    #Legenda Elementos da Legenda
+    legend_elements = [ Line2D([0], [0], marker='^', color='w', label='setosa', markerfacecolor='k', markersize=8),
+                        Line2D([0], [0], marker='o', color='w', label='versicolor', markerfacecolor='k', markersize=8),
+                        Line2D([0], [0], marker='s', color='w', label='virginica', markerfacecolor='k', markersize=8)]
+
+    
+    # Criar Graficos
+    for i in range(4):
+        for j in range(i+1, 4):
+            fig, ax = plt.subplots()
+            ax.legend(handles=legend_elements)
+            ax.set_xlabel(attributes[i])
+            ax.set_ylabel(attributes[j])
+            for instancia in range(len(X)):
+                ax.plot(X[instancia][i], X[instancia][j], cor_forma(y[instancia], groups[instancia]))
+
+            plt.show()
 
 
 # Função para criar tabela
