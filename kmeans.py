@@ -5,9 +5,11 @@ from matplotlib.lines import Line2D
 from sklearn import metrics
 import numpy as np
 
+numero_de_clusters = 3
+normalizar = True
 
 # Função Main
-def main():
+def main(k):
     #importar base de dados
     iris = datasets.load_iris()
     X = iris.data #instâncias [double, double, double, double]
@@ -19,6 +21,14 @@ def main():
     # Obter valores minimos e maximos
     min_max = [X.min(0), X.max(0)]
 
+
+    # Normalizar
+    if(normalizar):
+        for i in range(len(X)):
+            for j in range(4):
+                X[i][j] = X[i][j]/min_max[1][j]
+
+
     tabela(attributes, min_max)
 
     # Cria boxplot
@@ -29,7 +39,7 @@ def main():
     plt.show()
 
     # Gerar Agrupador
-    kmeans = KMeans(n_clusters=3, random_state=0).fit(X)
+    kmeans = KMeans(n_clusters=k, random_state=0).fit(X)
 
     # Obter clusters a que cada instância pertence
     groups = kmeans.predict(X)
@@ -195,9 +205,7 @@ def cor_forma(y, group):
 
 
 # Chamar Main
-
-main()
-
+main(numero_de_clusters)
 
 
 
