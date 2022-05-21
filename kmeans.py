@@ -2,6 +2,7 @@ from sklearn import datasets
 from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from sklearn import metrics
 import numpy as np
 
 
@@ -57,6 +58,89 @@ def main():
 
             plt.show()
 
+    # Calcular Metricas
+    own_db = davies_bouldin(X, groups, centroids)
+    metrics_db = metrics.davies_bouldin_score(X, groups)
+    own_sc = silhouette_coefficient(X, groups, centroids)
+    metrics_sc = metrics.silhouette_score(X,groups)
+
+    col_headers = ["Davies Bouldin Próprio", "Davies Bouldin Metrics", "Silhouette Próprio", "Silhoutte Metrics"]
+    ccolors = plt.cm.BuPu(np.full(len(col_headers), 1))
+    
+    the_table = plt.table(cellText=[[own_db, metrics_db, own_sc, metrics_sc]],
+                        colColours=ccolors,
+                        colLabels=col_headers,
+                        loc='center')  
+
+    plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=False)
+    for pos in ['right','top','bottom','left']:
+        plt.gca().spines[pos].set_visible(False)
+    plt.show() 
+
+# Função para calcular a Distância entre dois pontos no espaço 4D
+def distancia(x, y):
+    return ((x[0]-y[0])**2 + (x[1]-y[1])**2 + (x[2]-y[2])**2 + (x[3]-y[3])**2)**(0.5)
+
+
+# Função para calcular a distância média intra cluster
+def distancia_intra(X, groups, centroids, cluster):
+    number_instances = 0
+    average = 0.0
+    for i in range(len(X)):
+        if(groups[i] == cluster):
+            average += distancia(X[i], centroids[cluster])
+            number_instances+=1
+    return average/number_instances
+
+# Função para calcular a metrica de Davies_bouldin
+def davies_bouldin(X, groups, centroids):
+    db = 0.0
+    for i in range(len(centroids)):
+        Di = 0.0
+        for j in range(len(centroids)):
+            if(i!=j):
+                Rij = (distancia_intra(X, groups, centroids, i) + distancia_intra(X, groups, centroids, j))
+                Rij = Rij / distancia(centroids[i], centroids[j])
+                if(Di<Rij):
+                    Di = Rij
+        db += Di
+    return db/len(centroids)
+
+
+# Função para calcular a metrica Silhouette coefficient
+def silhouette_coefficient(X, groups, centroids):
+    Sc = 0.0
+    for i in range(len(X)):
+        ai = 0.0
+        bi = 0.0
+        intra_cluster = 0
+        distance_others = [0.0]*len(centroids)
+        number_others = [0]*len(centroids)
+        distance_others[groups[i]]=float("inf")
+        number_others[groups[i]] = 1
+
+        for j in range(len(X)):
+            if(i!=j and groups[i] == groups[j]):
+                ai += distancia(X[i], X[j])
+                intra_cluster+=1
+        ai = ai/intra_cluster
+
+        for j in range(len(X)):
+            if(groups[i] != groups[j]):
+                distance_others[groups[j]] += distancia(X[i], X[j])
+                number_others[groups[j]] += 1
+
+
+        for j in range(len(distance_others)):
+            distance_others[j] /= number_others[j]
+
+
+        bi = min(distance_others)
+
+        Sc += (bi - ai)/ max(ai, bi)
+
+    return Sc/len(X)
 
 # Função para criar tabela
 def tabela(attributes, data):
@@ -87,10 +171,16 @@ def cor_forma(y, group):
     # estabelecer cor em razão do cluster
     if(group == 0):
         marker+='r'
-    elif(group ==1):
+    elif(group==1):
         marker+='b'
     elif(group==2):
         marker+='y'
+    elif(group==3):
+        marker+='g'
+    elif(group==4):
+        marker+='c'
+    elif(group==5):
+        marker+='m'
 
     # estabelecer forma em razão da classe
     if(y == 0):
